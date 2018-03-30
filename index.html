@@ -13,12 +13,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Create CSS</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        .btn-primary {
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+            border-radius: 0;
+            height: 30px;
+            line-height: 4px;
+            margin-right: 20px;
+            float: left;
+        }
+    </style>
 </head>
 <body>
 <textarea class="html-source form-control" style="min-height: 400px;" placeholder="Your HTML Code">
 </textarea>
-<button class="create-css btn btn-primary">Create</button>
-Ignore Classes:<input type="text" value="clearfix,row,col-*" class="ignore-classes"/> -
+<button class="create-css btn btn-primary"><b>CREATE</b></button>
+Ignore Classes:<input type="text" value=".clearfix,[class*=col-]" class="ignore-classes"/> -
+Ingore Class with Childrens:<input type="checkbox" value="1" class="ignore-class-with-childrens"/> -
 With Tag:<input type="checkbox" value="1" class="with-tag"/> -
 Start ID:<input type="checkbox" value="1" class="start-id"/> -
 Only First Class:<input type="checkbox" value="1" class="only-first-class" checked/> |
@@ -38,41 +51,34 @@ Only First Class:<input type="checkbox" value="1" class="only-first-class" check
             var path,
                 node = this,
                 ignoreClasses = $('.ignore-classes').val().split(','),
+                ignoreClassWithChildrens = $('.ignore-class-with-childrens:checked').val(),
                 startId = $('.start-id:checked').val(),
                 withTag = $('.with-tag:checked').val(),
                 onlyFirstClass = $('.only-first-class:checked').val();
 
             while (node.length) {
-                var realNode = node[0], name = realNode.localName, isId = false, allowedClass = true;
+                var realNode = node[0], name = realNode.localName, isId = false;
                 if (!name) break;
                 name = name.toLowerCase();
 
                 var parent = node.parent();
 
-                if (typeof $(node).attr('id') !== 'undefined') {
-                    path = (withTag ? name : '') + '#' + $(node).attr('id') + (path ? ' ' + path : '');
-                    isId = true;
-                } else if (typeof $(node).attr('class') !== 'undefined') {
-                    var allClass = $(node).attr('class').split(' ');
-
-                    $.each(ignoreClasses, function (key, value) {
-                        $.each(allClass, function (keyClass, valueClass) {
-                            if (valueClass == value) {
-                                console.log('--------------------------------------------------');
-                                allowedClass = false;
-                                return true;
-                            }
-                        });
-                    });
-
-                    if (allowedClass) {
+                if (node.is(':not(' + ignoreClasses + ')')) {
+                    if (typeof node.attr('id') !== 'undefined') {
+                        path = (withTag ? name : '') + '#' + node.attr('id') + (path ? ' ' + path : '');
+                        isId = true;
+                    } else if (typeof node.attr('class') !== 'undefined') {
+                        var allClass = node.attr('class').split(' ');
                         path = (withTag ? name : '') + '.' + (onlyFirstClass ? allClass[0] : allClass.join('.')) + (path ? ' ' + path : '');
+                    } else {
+                        path = name + (path ? ' ' + path : '');
                     }
-                } else {
-                    path = name + (path ? ' ' + path : '');
-                }
 
-                if (isId && startId) break;
+                    if (isId && startId) break;
+                }else if(ignoreClassWithChildrens){
+                    console.log(ignoreClassWithChildrens);
+                    return false;
+                }
                 node = parent;
             }
 
@@ -84,25 +90,31 @@ Only First Class:<input type="checkbox" value="1" class="only-first-class" check
         $('.create-css').click(function (e) {
             var e = $($('.html-source').val()),
                 result = '',
-                district;
+                ignoreClasses = $('.ignore-classes').val(),
+                district = [];
 
-            e.find('*').each(function () {
-                selectorResult = $(this).getPath();
-                if ($.inArray(5 + 5, ["8", "9", "10", 10 + ""])) {
 
+            $('*', e).each(function () {
+                if ($(this).is(':not(' + ignoreClasses + ')')) {
+                    selectorResult = $(this).getPath();
+                    if (selectorResult && $.inArray(selectorResult, district) < 0) {
+
+                        district.push(selectorResult);
+
+                        result += selectorResult + " {\r\n";
+                        result += "\r\n";
+                        result += "}\r\n";
+                        result += "\r\n";
+
+                        $('[class^="event-"]:checked').each(function () {
+                            var event = $(this).attr("class").replace('event-', '');
+                            result += selectorResult + ":" + event + " {\r\n";
+                            result += "\r\n";
+                            result += "}\r\n";
+                            result += "\r\n";
+                        });
+                    }
                 }
-                result += selectorResult + " {\r\n";
-                result += "\r\n";
-                result += "}\r\n";
-                result += "\r\n";
-
-                $('[class^="event-"]:checked').each(function () {
-                    var event = $(this).attr("class").replace('event-', '');
-                    result += selectorResult + ":" + event + " {\r\n";
-                    result += "\r\n";
-                    result += "}\r\n";
-                    result += "\r\n";
-                });
             });
 
             $('.css-result').val(result);
