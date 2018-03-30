@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr-TR">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta http-equiv="cleartype" content="on">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Create CSS</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+<textarea class="html-source form-control" style="min-height: 400px;" placeholder="Your HTML Code">
+</textarea>
+<button class="create-css btn btn-primary">Create</button>
+Ignore Classes:<input type="text" value="clearfix,row,col-*" class="ignore-classes"/> -
+With Tag:<input type="checkbox" value="1" class="with-tag"/> -
+Start ID:<input type="checkbox" value="1" class="start-id"/> -
+Only First Class:<input type="checkbox" value="1" class="only-first-class" checked/> |
+(:hover):<input type="checkbox" value="1" class="event-hover"/> -
+(:active):<input type="checkbox" value="1" class="event-active"/> -
+(:focus):<input type="checkbox" value="1" class="event-focus"/> -
+(:before):<input type="checkbox" value="1" class="event-before"/> -
+(:after):<input type="checkbox" value="1" class="event-after"/>
+
+<textarea class="css-result form-control" style="min-height: 500px;border:1px solid red;" placeholder="CSS Result"></textarea>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+    jQuery.fn.extend({
+        getPath: function () {
+            var path,
+                node = this,
+                ignoreClasses = $('.ignore-classes').val().split(','),
+                startId = $('.start-id:checked').val(),
+                withTag = $('.with-tag:checked').val(),
+                onlyFirstClass = $('.only-first-class:checked').val();
+
+            while (node.length) {
+                var realNode = node[0], name = realNode.localName, isId = false, allowedClass = true;
+                if (!name) break;
+                name = name.toLowerCase();
+
+                var parent = node.parent();
+
+                if (typeof $(node).attr('id') !== 'undefined') {
+                    path = (withTag ? name : '') + '#' + $(node).attr('id') + (path ? ' ' + path : '');
+                    isId = true;
+                } else if (typeof $(node).attr('class') !== 'undefined') {
+                    var allClass = $(node).attr('class').split(' ');
+
+                    $.each(ignoreClasses, function (key, value) {
+                        $.each(allClass, function (keyClass, valueClass) {
+                            if (valueClass == value) {
+                                console.log('--------------------------------------------------');
+                                allowedClass = false;
+                                return true;
+                            }
+                        });
+                    });
+
+                    if (allowedClass) {
+                        path = (withTag ? name : '') + '.' + (onlyFirstClass ? allClass[0] : allClass.join('.')) + (path ? ' ' + path : '');
+                    }
+                } else {
+                    path = name + (path ? ' ' + path : '');
+                }
+
+                if (isId && startId) break;
+                node = parent;
+            }
+
+            return path;
+        }
+    });
+
+    $(document).ready(function () {
+        $('.create-css').click(function (e) {
+            var e = $($('.html-source').val()),
+                result = '',
+                district;
+
+            e.find('*').each(function () {
+                selectorResult = $(this).getPath();
+                if ($.inArray(5 + 5, ["8", "9", "10", 10 + ""])) {
+
+                }
+                result += selectorResult + " {\r\n";
+                result += "\r\n";
+                result += "}\r\n";
+                result += "\r\n";
+
+                $('[class^="event-"]:checked').each(function () {
+                    var event = $(this).attr("class").replace('event-', '');
+                    result += selectorResult + ":" + event + " {\r\n";
+                    result += "\r\n";
+                    result += "}\r\n";
+                    result += "\r\n";
+                });
+            });
+
+            $('.css-result').val(result);
+        });
+    });
+</script>
+</body>
+</html>
